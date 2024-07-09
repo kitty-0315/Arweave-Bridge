@@ -1,24 +1,19 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.24;
+pragma solidity 0.8.26;
 
 // Imports
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {Chainlink, ChainlinkClient} from "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/// @title AoBridge contract
-contract AoBridge is ChainlinkClient, ConfirmedOwner {
-    using SafeERC20 for IERC20;
+/// @title AoBridgeETH contract
+contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    IERC20 public immutable token;
-
     // Events declaration
-
-    event Lock(address address_, uint256 amount_);
-    event Unlock(address address_, uint256 amount_);
+    event Lock(address indexed address_, uint256 amount_);
+    event Unlock(address indexed address_, uint256 amount_);
     event Request(bytes32 indexed requestId_, uint256 result_);
 
     // State variables declaration
@@ -73,7 +68,6 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
      * @param _baseEndpoint The MEM API base endpoint
      */
     constructor(
-        IERC20 _btoken,
         address _oracleAddress,
         address _linkTokenAddr,
         address _treasuryAddr,
@@ -87,13 +81,12 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
     ) ConfirmedOwner(msg.sender) {
         address uinitialized = address(0);
         require(
-            _oracleAddress != uinitialized &&
-                _linkTokenAddr != uinitialized &&
-                _treasuryAddr != uinitialized &&
-                _cronjobAddr != uinitialized &&
-                address(_btoken) != uinitialized
+            _oracleAddress != address(0) &&
+            _linkTokenAddr != address(0) &&
+            _treasuryAddr != address(0) &&
+            _cronjobAddr != address(0),
+            "Invalid address"
         );
-        token = _btoken;
         treasury = _treasuryAddr;
         cronjobAddress = _cronjobAddr;
         minBamount = _minBAmount;
@@ -183,21 +176,16 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
      * @param _amount The amount of tokens to lock.
      * @param _to An optional parameter to make the bridge compatible with smart wallets.
      */
+    function lock(address _to) external payable {
+        require(msg.value >= minBamount, "Amount below minimum");
 
-    function lock(uint256 _amount, address _to) external {
-        address caller;
-        uint256 net_amount = computeNetAmount(_amount);
-        uint256 generateFees = _amount - net_amount;
-        // assign the correct EOA to _to param
-        if (_to == address(0)) {
-            caller = msg.sender;
-        } else {
-            caller = _to;
-        }
+        address caller = _to == address(0) ? msg.sender : _to;
+        uint256 net_amount = computeNetAmount(msg.value);
+        uint256 generateFees = msg.value - net_amount;
 
-        // ETH transfer
-        token.safeTransferFrom(msg.sender, address(this), _amount);
-        // update balances map
+        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+        require(sent, "Failed to send Ether");
+
         balanceOf[caller] += net_amount;
         // update treasury balance from fee cut
         balanceOf[treasury] += generateFees;
@@ -308,7 +296,7 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
 
     /// @param _url New URL endpoint
     function setBaseEndpoint(string memory _url) public onlyOwner {
-        baseEndpoint = _url;
+                baseEndpoint = _url;
     }
 
     function getBaseEndpoint() public view returns (string memory) {
