@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.26;
+pragma solidity 0.8.24;
 
 // Imports
 import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interfaces/LinkTokenInterface.sol";
@@ -79,7 +79,6 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
         uint256 _minBAmount,
         uint256 _unlockFlatFee
     ) ConfirmedOwner(msg.sender) {
-        address uinitialized = address(0);
         require(
             _oracleAddress != address(0) &&
             _linkTokenAddr != address(0) &&
@@ -136,7 +135,7 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
             '["content-type", "application/json", "set-cookie", "sid=14A52"]'
         );
         req._add("body", "");
-        req._add("contact", "https://t.me/decentland");
+        req._add("contact", "https://t.me/analos_xyz");
         req._addInt("multiplier", 1); // MEM store balances in BigInt as well
 
         // Sends the request
@@ -173,7 +172,6 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
     }
 
     /**
-     * @param _amount The amount of tokens to lock.
      * @param _to An optional parameter to make the bridge compatible with smart wallets.
      */
     function lock(address _to) external payable {
@@ -183,7 +181,7 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
         uint256 net_amount = computeNetAmount(msg.value);
         uint256 generateFees = msg.value - net_amount;
 
-        (bool sent, bytes memory data) = _to.call{value: msg.value}("");
+        (bool sent, ) = _to.call{value: msg.value}("");
         require(sent, "Failed to send Ether");
 
         balanceOf[caller] += net_amount;
@@ -225,7 +223,9 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
         // update stats: total locked tokens
         totalLocked -= amount;
         //transfer the tokens
-        token.safeTransfer(msg.sender, net_amount);
+        (bool sent, ) = msg.sender.call{value: net_amount}("");
+        require(sent, "Failed to send Ether");
+
         // emit event
         emit Unlock(msg.sender, net_amount);
     }
@@ -248,7 +248,8 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
         uint256 amount = balanceOf[treasury];
         assert(amount > 0);
         require(msg.sender == treasury, "err_invalid_caller");
-        token.safeTransfer(treasury, amount);
+        (bool sent, ) = treasury.call{value: amount}("");
+        require(sent, "Failed to send Ether");
         balanceOf[treasury] = 0;
     }
 
