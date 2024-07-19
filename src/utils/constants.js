@@ -1,7 +1,7 @@
 export const ETH_TOKEN_BRIDGE =
-  "0xf1c3995bC0E07b161E59B5D43901C64703e44Efa";
-export const MEM_ORACLE_ID = `BompigyZ5dHdQP3fPLw_aMxmEsOGJ3uMPfhzmsLAcfI`;
-export const AO_PROCESS_ID = `Ihe78gGT4BQWGjIfElOqw14M0HaODNI6yjy9YM1Xais`; // eth-to-usd
+  "0xcE92ECFE82acB4806D99268E0470B832d9616852";
+export const MEM_ORACLE_ID = `FP_8isx3lBvBXrXMiFn86HZnHKAgc1Yu1BqTb_XZSG8`;
+export const AO_PROCESS_ID = `hfa2INNASU1pVAn2p6878ohsOch8x0kwRzXhGVacWAo`; // eth-to-usd
 
 export const RPC_URL = `https://rpc.sepolia.org/`;
 
@@ -11,7 +11,7 @@ export const BRIDGE_ABI = [
 
 
 export const BRIDGES_CONTRACTS = {
-  "0xf1c3995bC0E07b161E59B5D43901C64703e44Efa": {
+  "0xcE92ECFE82acB4806D99268E0470B832d9616852": {
     name: "usdc_token",
     decimals: 1e6,
   },

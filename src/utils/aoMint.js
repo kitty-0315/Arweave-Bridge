@@ -15,7 +15,7 @@ export async function executeMemAoLock(id) {
     const locks = (
       await axios.get(`https://api.mem.tech/api/state/${MEM_ORACLE_ID}`)
     )?.data?.aoLocks;
-
+    
     const lockIndex = locks.findIndex((lock) => lock.id === id);
     assert.equal(lockIndex >= 0, true);
     const lock = locks[lockIndex];

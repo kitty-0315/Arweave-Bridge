@@ -9,7 +9,7 @@ const BridgeModule = buildModule("Bridge", (m) => {
     "0x57E2E2E06Fb0dDc9B9C65309a8ed33F138328180",
     "0x57E2E2E06Fb0dDc9B9C65309a8ed33F138328180",
     "a8356f48569c434eaa4ac5fcb4db5cc0",
-    "https://api.mem.tech",
+    "http://135.181.160.39:3000/",
     "1000",
     "1",
     "1000",

@@ -5,21 +5,21 @@ import assert from "node:assert";
 
 export async function validateLock(txid, expectedCaller, tokenContractAddr) {
   try {
-    const normalized = ethers.utils.getAddress;
+    const normalized = ethers.getAddress;
     assert(tokenContractAddr in BRIDGES_CONTRACTS, true);
     // Set up provider for the Sepolia network
-    const provider = new ethers.providers.JsonRpcProvider(RPC_URL);
+    const provider = new ethers.JsonRpcProvider(RPC_URL);
     const currentBlockNumber = await provider.getBlockNumber();
 
     const receipt = await provider.getTransactionReceipt(txid);
     const abi = ["event Lock (address target, uint256 amount)"];
-    const iface = new ethers.utils.Interface(abi);
+    const iface = new ethers.Interface(abi);
 
-    const log = iface.parseLog(receipt.logs[1]);
+    const log = iface.parseLog(receipt.logs[0]);
 
     assert.equal(receipt.to, tokenContractAddr);
     assert.equal(normalized(receipt.from), normalized(expectedCaller));
-    assert.equal(receipt.transactionHash, txid);
+    assert.equal(receipt.hash, txid);
     assert.equal(Boolean(receipt.blockNumber), true);
     assert.equal(receipt.blockNumber + 3 < currentBlockNumber, true);
     const { args, name, signature } = log;

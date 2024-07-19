@@ -1,19 +1,57 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import dotenv from "dotenv";
+const { HardhatUserConfig, vars } = require("hardhat/config");
+require("@nomicfoundation/hardhat-toolbox");
+require("dotenv").config();
 
-dotenv.config();
-
-const private_key = process.env.WALLET_PHARSE || "";
-
-const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+const ETHERSCAN_API_KEY = vars.get("ETHERSCAN_API_KEY");
+const config = {
+  solidity: {
+    version: "0.8.24",
+  },
   networks: {
-    ethereum: {
-      url: 'https://rpc.sepolia.org',
-      accounts: [private_key]
-    }
-  }
+    // for mainnet
+    "base-mainnet": {
+      url: "https://mainnet.base.org",
+      accounts: [process.env.PRIVATE_KEY],
+      gasPrice: 1000000000,
+    },
+    // for testnet
+    sepolia: {
+      url: "https://rpc.sepolia.org",
+      accounts: [process.env.PRIVATE_KEY],
+      gas: 8000000,
+      gasPrice: 1000000000,
+    },
+    // for local dev environment
+    "base-local": {
+      url: "http://localhost:8545",
+      accounts: [process.env.PRIVATE_KEY],
+      gasPrice: 1000000000,
+    },
+  },
+  etherscan: {
+    apiKey: {
+      sepolia: ETHERSCAN_API_KEY,
+    },
+  },
+  sourcify: {
+    enabled: true,
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
+  mocha: {
+    timeout: 20000,
+  },
+  ignition: {
+    root: "./src/ignition",
+    modules: "./modules",
+    output: "./output",
+    clean: true,
+  },
+  defaultNetwork: "hardhat",
 };
 
-export default config;
+module.exports = config;

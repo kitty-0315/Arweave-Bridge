@@ -199,10 +199,12 @@ export async function handle(state, action) {
 
       const encodedMessage = btoa(`${state.sig_message}${state.counter}`);
 
-      const isValid = await EXM.deterministicFetch(
-        `${state.evm_molecule_endpoint}/signer/${caller}/${encodedMessage}/${signature}`,
-      );
-      ContractAssert(isValid.asJSON()?.result, "ERROR_UNAUTHORIZED_CALLER");
+      const isValid = (
+        await EXM.deterministicFetch(
+          `${state.evm_molecule_endpoint}/signer/${caller}/${encodedMessage}/${signature}`,
+        )
+      )?.asJSON();
+      ContractAssert(isValid?.result, "ERROR_UNAUTHORIZED_CALLER");
       state.signatures.push(signature);
       state.counter += 1;
     } catch (error) {

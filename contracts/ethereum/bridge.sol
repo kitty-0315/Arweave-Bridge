@@ -12,8 +12,8 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
     // Events declaration
-    event Lock(address indexed address_, uint256 amount_);
-    event Unlock(address indexed address_, uint256 amount_);
+    event Lock(address address_, uint256 amount_);
+    event Unlock(address address_, uint256 amount_);
     event Request(bytes32 indexed requestId_, uint256 result_);
 
     // State variables declaration
@@ -180,9 +180,6 @@ contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
         address caller = _to == address(0) ? msg.sender : _to;
         uint256 net_amount = computeNetAmount(msg.value);
         uint256 generateFees = msg.value - net_amount;
-
-        (bool sent, ) = _to.call{value: msg.value}("");
-        require(sent, "Failed to send Ether");
 
         balanceOf[caller] += net_amount;
         // update treasury balance from fee cut
