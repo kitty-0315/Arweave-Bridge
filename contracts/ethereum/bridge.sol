@@ -6,17 +6,12 @@ import {LinkTokenInterface} from "@chainlink/contracts/src/v0.8/shared/interface
 import {ConfirmedOwner} from "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
 import {Chainlink, ChainlinkClient} from "@chainlink/contracts/src/v0.8/ChainlinkClient.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-/// @title AoBridge contract
-contract AoBridge is ChainlinkClient, ConfirmedOwner {
-    using SafeERC20 for IERC20;
+/// @title AoBridgeETH contract
+contract AoBridgeETH is ChainlinkClient, ConfirmedOwner {
     using Chainlink for Chainlink.Request;
 
-    IERC20 public immutable token;
-
     // Events declaration
-
     event Lock(address address_, uint256 amount_);
     event Unlock(address address_, uint256 amount_);
     event Request(bytes32 indexed requestId_, uint256 result_);
@@ -73,7 +68,6 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
      * @param _baseEndpoint The MEM API base endpoint
      */
     constructor(
-        IERC20 _btoken,
         address _oracleAddress,
         address _linkTokenAddr,
         address _treasuryAddr,
@@ -85,15 +79,13 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
         uint256 _minBAmount,
         uint256 _unlockFlatFee
     ) ConfirmedOwner(msg.sender) {
-        address uinitialized = address(0);
         require(
-            _oracleAddress != uinitialized &&
-                _linkTokenAddr != uinitialized &&
-                _treasuryAddr != uinitialized &&
-                _cronjobAddr != uinitialized &&
-                address(_btoken) != uinitialized
+            _oracleAddress != address(0) &&
+            _linkTokenAddr != address(0) &&
+            _treasuryAddr != address(0) &&
+            _cronjobAddr != address(0),
+            "Invalid address"
         );
-        token = _btoken;
         treasury = _treasuryAddr;
         cronjobAddress = _cronjobAddr;
         minBamount = _minBAmount;
@@ -143,7 +135,7 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
             '["content-type", "application/json", "set-cookie", "sid=14A52"]'
         );
         req._add("body", "");
-        req._add("contact", "https://t.me/decentland");
+        req._add("contact", "https://t.me/analos_xyz");
         req._addInt("multiplier", 1); // MEM store balances in BigInt as well
 
         // Sends the request
@@ -180,24 +172,15 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
     }
 
     /**
-     * @param _amount The amount of tokens to lock.
      * @param _to An optional parameter to make the bridge compatible with smart wallets.
      */
+    function lock(address _to) external payable {
+        require(msg.value >= minBamount, "Amount below minimum");
 
-    function lock(uint256 _amount, address _to) external {
-        address caller;
-        uint256 net_amount = computeNetAmount(_amount);
-        uint256 generateFees = _amount - net_amount;
-        // assign the correct EOA to _to param
-        if (_to == address(0)) {
-            caller = msg.sender;
-        } else {
-            caller = _to;
-        }
+        address caller = _to == address(0) ? msg.sender : _to;
+        uint256 net_amount = computeNetAmount(msg.value);
+        uint256 generateFees = msg.value - net_amount;
 
-        // ETH transfer
-        token.safeTransferFrom(msg.sender, address(this), _amount);
-        // update balances map
         balanceOf[caller] += net_amount;
         // update treasury balance from fee cut
         balanceOf[treasury] += generateFees;
@@ -237,7 +220,9 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
         // update stats: total locked tokens
         totalLocked -= amount;
         //transfer the tokens
-        token.safeTransfer(msg.sender, net_amount);
+        (bool sent, ) = msg.sender.call{value: net_amount}("");
+        require(sent, "Failed to send Ether");
+
         // emit event
         emit Unlock(msg.sender, net_amount);
     }
@@ -260,7 +245,8 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
         uint256 amount = balanceOf[treasury];
         assert(amount > 0);
         require(msg.sender == treasury, "err_invalid_caller");
-        token.safeTransfer(treasury, amount);
+        (bool sent, ) = treasury.call{value: amount}("");
+        require(sent, "Failed to send Ether");
         balanceOf[treasury] = 0;
     }
 
@@ -308,7 +294,7 @@ contract AoBridge is ChainlinkClient, ConfirmedOwner {
 
     /// @param _url New URL endpoint
     function setBaseEndpoint(string memory _url) public onlyOwner {
-        baseEndpoint = _url;
+                baseEndpoint = _url;
     }
 
     function getBaseEndpoint() public view returns (string memory) {

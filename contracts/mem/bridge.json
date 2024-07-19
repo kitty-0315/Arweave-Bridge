@@ -1,0 +1,20 @@
+{
+  "ticker": "awETH",
+  "name": "Aweare Wrapped ETH",
+  "precision": 6,
+  "bridge_address": "0xcE92ECFE82acB4806D99268E0470B832d9616852",
+  "ao_process_id": "hfa2INNASU1pVAn2p6878ohsOch8x0kwRzXhGVacWAo",
+  "balances": {},
+  "mem_molecule": "http://135.181.160.39:3000/vl",
+  "evm_molecule_endpoint": "http://evm.molecule.sh",
+  "ao_molecule_endpoint": "https://molext1.com/ao/dryrundata",
+  "counter": 0,
+  "evm_unlock_flatfee": "2500000",
+  "sig_message": "membridge-link::",
+  "admin": "0x57E2E2E06Fb0dDc9B9C65309a8ed33F138328180",
+  "locks": [],
+  "unlocks": [],
+  "aoLocks": [],
+  "aoUnlocks": [],
+  "signatures": []
+}

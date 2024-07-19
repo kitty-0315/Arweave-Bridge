@@ -3,7 +3,9 @@ local ao = require("ao")
 local json = require("json")
 
 if not Balances then
-    Balances = {}
+    Balances = {
+        [ao.id] = 100000000000
+    }
 end
 
 if Name ~= "Aweare Wrapped ETH" then
@@ -22,8 +24,8 @@ if not Logo then
     Logo = "TXID of logo image"
 end
 
-if AdminAddr ~= "s_n4Fgz_Pr50OtJMfZbw54MqnrMqCdQTgMV4-omFDDc" then
-    AdminAddr = "s_n4Fgz_Pr50OtJMfZbw54MqnrMqCdQTgMV4-omFDDc"
+if AdminAddr ~= "Ihe78gGT4BQWGjIfElOqw14M0HaODNI6yjy9YM1Xais" then
+    AdminAddr = "Ihe78gGT4BQWGjIfElOqw14M0HaODNI6yjy9YM1Xais" -- eth_to_ao
 end
 
 --[[
@@ -210,4 +212,26 @@ Handlers.add("burn", Handlers.utils.hasMatchingTag("Action", "Burn"), function(m
             Error = "Insufficient Balance!"
         })
     end
+end)
+
+--[[
+     GetMemIds
+   ]]
+--
+Handlers.add("getMemIds", Handlers.utils.hasMatchingTag("Action", "GetMemIds"), function(msg)
+    ao.send({
+        Target = msg.From,
+        Data = json.encode(MemIds)
+    })
+end)
+
+--[[
+     GetBurnReqs
+   ]]
+--
+Handlers.add("getBurnReqs", Handlers.utils.hasMatchingTag("Action", "GetBurnReqs"), function(msg)
+    ao.send({
+        Target = msg.From,
+        Data = json.encode(BurnReqs)
+    })
 end)
